@@ -11,10 +11,6 @@ import {
   getTwoFactorTokenByToken,
 } from "./data/twoFactorToken";
 
-class InvalidLoginError extends CredentialsSignin {
-  code = "Invalid identifier or password";
-}
-
 export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: "/auth/login",
@@ -24,6 +20,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: {
     strategy: "jwt",
   },
+
   callbacks: {
     async signIn({ user, account, credentials }) {
       const code = credentials!.code as string;
@@ -83,33 +80,39 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return true;
     },
     async jwt({ token, user }) {
+      console.log("i am being called again");
       if (!token.sub) return token;
 
       const existingUser = await getUserById(token.sub);
       if (!existingUser) return token;
 
+      token.name = existingUser.name;
+      token.email = existingUser.email;
       token.role = existingUser.role;
+      token.isTwoFactorEnabled = existingUser.isTwoFactorEnabled;
       return token;
     },
     async session({ token, session }) {
-      // console.log("Token", token);
       if (token.sub && session.user) {
+        session.user.name = token.name;
+        session.user.email = token.email || "";
         session.user.id = token.sub;
         session.user.role = token.role;
+        session.user.isTwoFactorEnabled = token.isTwoFactorEnabled;
       }
       return session;
     },
   },
-  events: {
-    async linkAccount({ user }) {
-      await db.user.update({
-        where: { id: user.id },
-        data: {
-          emailVerified: new Date(),
-        },
-      });
-    },
-  },
+  // events: {
+  //   async linkAccount({ user }) {
+  //     await db.user.update({
+  //       where: { id: user.id },
+  //       data: {
+  //         emailVerified: new Date(),
+  //       },
+  //     });
+  //   },
+  // },
 
   ...authConfig,
 });

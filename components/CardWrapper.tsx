@@ -22,7 +22,7 @@ const CardWrapper = ({
   showSocial = false,
 }: Props) => {
   return (
-    <Card className="w-[500px]">
+    <Card className="">
       <CardHeader className="text-neutral-500">
         <section className="w-full flex flex-col gap-y-4 items-center justify-center">
           <h1 className={cn("text-3xl font-semibold text-[#2f2f2f]")}>
