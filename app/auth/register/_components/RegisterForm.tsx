@@ -19,7 +19,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import FormError from "@/components/form-error";
 import FormSuccess from "@/components/form-success";
 import { register } from "@/actions/register";
-import { RegisterSchema } from "@/schema/RegisterSchema";
+import { RegisterSchema } from "@/schema/Schema";
 import { useRouter } from "next/navigation";
 
 type Props = {};
@@ -58,7 +58,7 @@ const RegisterForm = (props: Props) => {
       showSocial
     >
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
             control={form.control}
             name="name"

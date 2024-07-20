@@ -3,6 +3,13 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import authConfig from "./auth.config";
 import { db } from "./lib/db";
 import { getUserById } from "./data/user";
+import { sendTwoFactorEmail, sendVerificationEmail } from "./lib/mail";
+import { generateTwoFactorToken, generateVerificationToken } from "./lib/token";
+import { getTwoFactorConfirmationByUserId } from "./data/twoFactorConfirmation";
+import {
+  getTwoFactorTokenByEmail,
+  getTwoFactorTokenByToken,
+} from "./data/twoFactorToken";
 
 class InvalidLoginError extends CredentialsSignin {
   code = "Invalid identifier or password";
@@ -18,17 +25,61 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     strategy: "jwt",
   },
   callbacks: {
-    async signIn({ user, account }) {
+    async signIn({ user, account, credentials }) {
+      const code = credentials!.code as string;
       // Allow Oauth without email verification
       if (account?.provider == "oauth") return true;
-
       const existingUser = await getUserById(user.id!);
 
-      // Prevent sign in without email verification
-      if (!existingUser || !existingUser.emailVerified) {
+      if (!existingUser) {
+        throw new CredentialsSignin("User not found");
       }
-      //TODO : ADD 2FA Check
 
+      // Prevent sign in without email verification
+      if (!existingUser.emailVerified) {
+        const verificationToken = await generateVerificationToken(
+          existingUser.email!
+        );
+        await sendVerificationEmail(
+          existingUser.email!,
+          verificationToken.token
+        );
+        throw new CredentialsSignin("Verification email sent!");
+      }
+
+      //ADD 2FA Check
+      if (existingUser.isTwoFactorEnabled) {
+        // if no token provided then send an email
+        if (!credentials?.code) {
+          const verificationToken = await generateTwoFactorToken(user.email!);
+          await sendTwoFactorEmail(user.email!, verificationToken.token);
+          throw new CredentialsSignin("TwoFactor");
+        }
+
+        //check if the token exists
+        const twoFactorToken = await getTwoFactorTokenByEmail(
+          existingUser.email!
+        );
+        if (!twoFactorToken) {
+          throw new CredentialsSignin("Invalid code");
+        }
+
+        if (twoFactorToken.token !== code) {
+          throw new CredentialsSignin("Invalid code");
+        }
+
+        //check the code is expired
+        const hasExpired = new Date(twoFactorToken.expires) < new Date();
+        if (hasExpired) {
+          throw new CredentialsSignin("Code has expired");
+        }
+
+        await db.twoFactorToken.delete({
+          where: {
+            id: twoFactorToken.id,
+          },
+        });
+      }
       return true;
     },
     async jwt({ token, user }) {

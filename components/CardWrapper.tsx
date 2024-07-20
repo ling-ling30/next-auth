@@ -19,7 +19,7 @@ const CardWrapper = ({
   headerLabel,
   backButtonLabel,
   BackButtonHref,
-  showSocial,
+  showSocial = false,
 }: Props) => {
   return (
     <Card className="w-[500px]">
@@ -39,7 +39,7 @@ const CardWrapper = ({
       )}
       <CardFooter className="flex justify-center">
         <Link href={BackButtonHref}>
-          <Button size={"sm"} variant={"link"}>
+          <Button size={"sm"} variant={"link"} className="font-semibold">
             {backButtonLabel}
           </Button>
         </Link>
