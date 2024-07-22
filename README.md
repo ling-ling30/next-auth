@@ -116,43 +116,6 @@ Moving the SessionProvider from the root layout to a separate layout resolved th
 **Implications:**
 This finding highlights the importance of careful component placement in Next.js applications, especially when dealing with authentication state. It also underscores the need to test authentication flows thoroughly across both server and client environments.
 
-## Notable Behavior: Transient URL Discrepancy in Client-Side Navigation
-
-During the development of the authentication system using Next.js middleware, I observed an intriguing and temporary behavior related to client-side navigation and URL updates:
-
-### Initial Observation:
-
-When a redirect occurred due to the middleware:
-
-1. The page content changed correctly on both server and client sides.
-2. The URL in the browser's address bar did not update to reflect the new page on the client side.
-
-### Subsequent Behavior:
-
-Interestingly, upon restarting the project, the behavior normalized:
-
-- The URL discrepancy issue resolved itself.
-- Both the page content and URL updated correctly after middleware-initiated redirects.
-
-### Implications:
-
-1. Intermittent Nature: This suggests that the issue might be related to development environment quirks or caching mechanisms rather than a fundamental problem with the middleware or Next.js routing.
-2. Debugging Challenges: Such transient behaviors can be challenging to debug and reproduce consistently.
-
-### Potential Causes:
-
-1. Development Server State: The initial state of the Next.js development server might have been preserving some outdated routing behavior.
-2. Caching Issues: Browser or server-side caches might have been interfering with the proper updating of URLs.
-3. Hot Module Replacement (HMR): Inconsistencies in HMR during development could potentially cause such temporary anomalies.
-
-### Lessons Learned:
-
-1. Importance of Restarting: Sometimes, simply restarting the development server can resolve seemingly complex issues.
-2. Verification Process: It's crucial to verify observed behaviors across multiple server restarts and in different environments (development vs. production) before concluding there's a persistent issue.
-3. Documentation Value: Recording even temporary issues can be valuable for understanding the nuances of the development process and for troubleshooting similar issues in the future.
-
-This experience highlights the sometimes unpredictable nature of web development, especially when working with complex systems like Next.js that involve both server-side and client-side operations. It underscores the importance of thorough testing and the value of a systematic approach to problem-solving in web development.
-
 ## Conclusion and Next Steps
 
 This project has provided valuable insights into implementing and optimizing authentication flows in Next.js applications. By refining the original approach, we've achieved a more efficient, secure, and user-friendly authentication process.

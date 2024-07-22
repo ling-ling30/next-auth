@@ -18,21 +18,6 @@ export const login = async (values: z.infer<typeof loginSchema>) => {
   }
 
   const { email, password, code } = validatedFields.data;
-  // const existingUser = await getUserByEmail(email);
-  // if (!existingUser) {
-  //   return {
-  //     error: "Email doesn't exist",
-  //   };
-  // }
-
-  // if (!existingUser.emailVerified) {
-  //   const verificationToken = await generateVerificationToken(email);
-  //   await sendVerificationEmail(email, verificationToken.token);
-
-  //   return {
-  //     success: "Confirmation email sent.",
-  //   };
-  // }
 
   try {
     await signIn("credentials", {
@@ -61,6 +46,7 @@ export const login = async (values: z.infer<typeof loginSchema>) => {
               twoFactor: true,
             };
           }
+
           return { error: error.cause?.err?.message || "Something went wrong" };
         }
         case "CallbackRouteError": {

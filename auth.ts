@@ -10,8 +10,9 @@ import {
   getTwoFactorTokenByEmail,
   getTwoFactorTokenByToken,
 } from "./data/twoFactorToken";
+import { getAccountByUserId } from "./data/account";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
   pages: {
     signIn: "/auth/login",
     error: "/auth/error",
@@ -23,9 +24,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   callbacks: {
     async signIn({ user, account, credentials }) {
-      const code = credentials!.code as string;
+      if (account?.provider !== "credentials") return true;
+      const code = credentials?.code as string;
       // Allow Oauth without email verification
-      if (account?.provider == "oauth") return true;
       const existingUser = await getUserById(user.id!);
 
       if (!existingUser) {
@@ -79,13 +80,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return true;
     },
-    async jwt({ token, user }) {
-      console.log("i am being called again");
+    async jwt({ token }) {
       if (!token.sub) return token;
 
       const existingUser = await getUserById(token.sub);
       if (!existingUser) return token;
-
+      const account = await getAccountByUserId(existingUser.id);
+      token.isOauth = !!account;
       token.name = existingUser.name;
       token.email = existingUser.email;
       token.role = existingUser.role;
@@ -94,25 +95,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ token, session }) {
       if (token.sub && session.user) {
-        session.user.name = token.name;
-        session.user.email = token.email || "";
         session.user.id = token.sub;
+      }
+      if (token.name && session.user) {
+        session.user.name = token.name;
+      }
+      if (token.email && session.user) {
+        session.user.email = token.email || "";
+      }
+      if (session.user) {
         session.user.role = token.role;
         session.user.isTwoFactorEnabled = token.isTwoFactorEnabled;
+        session.user.isOauth = token.isOauth;
       }
       return session;
     },
   },
-  // events: {
-  //   async linkAccount({ user }) {
-  //     await db.user.update({
-  //       where: { id: user.id },
-  //       data: {
-  //         emailVerified: new Date(),
-  //       },
-  //     });
-  //   },
-  // },
+  events: {
+    async linkAccount({ user }) {
+      await db.user.update({
+        where: { id: user.id },
+        data: {
+          emailVerified: new Date(),
+        },
+      });
+    },
+  },
 
   ...authConfig,
 });

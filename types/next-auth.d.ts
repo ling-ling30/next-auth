@@ -9,6 +9,7 @@ declare module "next-auth" {
     user: {
       role: "ADMIN" | "USER";
       isTwoFactorEnabled: boolean;
+      isOauth: boolean;
     } & DefaultSession["user"];
   }
 }
@@ -17,5 +18,6 @@ declare module "next-auth/jwt" {
   interface JWT {
     role: "ADMIN" | "USER";
     isTwoFactorEnabled: boolean;
+    isOauth: boolean;
   }
 }
