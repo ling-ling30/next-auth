@@ -23,7 +23,7 @@ function NewVerificationForm({}: Props) {
         setSuccess(data.success);
       })
       .catch(() => setError("Something went wrong!"));
-  }, [error, success, token]);
+  }, [token]);
 
   useEffect(() => {
     onSubmit();
